@@ -21,8 +21,10 @@ class AlienTechSpider(scrapy.Spider):
             if temp_price is not None:
                 item['price'] = temp_price.replace('.', '').replace(',', '.')[:-1]
                 item['sale_price'] = sale_price
+                item['on_sale'] = True
             else:
                 item['price'] = sale_price
+                item['on_sale'] = False
             yield item
 
         pages = response.xpath('//a[@class="pageResults"]/@href')

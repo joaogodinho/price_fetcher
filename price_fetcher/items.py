@@ -13,4 +13,4 @@ class ProductItem(scrapy.Item):
     part_number = scrapy.Field()
     price = scrapy.Field()
     sale_price = scrapy.Field()
-
+    on_sale = scrapy.Field()
