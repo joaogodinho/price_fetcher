@@ -11,7 +11,7 @@ class PCDigaSpider(scrapy.Spider):
     start_urls = [
         'https://www.pcdiga.com/nm_pesquisa.php?pesquisa=%&pagina=1&ordem=4&categoria=&marca=',
     ]
-    pn_regex = re.compile(r'\(([^)]+)\)$')
+    pn_regex = re.compile(r'\(([^)]+)\)$|\(([^)]+)\)\s+\+\s+oferta', re.IGNORECASE)
 
     def parse(self, response):
         continue_scraping = True
