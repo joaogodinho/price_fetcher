@@ -42,4 +42,5 @@ class PCDigaSpider(scrapy.Spider):
         if continue_scraping:
             pages = response.xpath('//a[@class="cinza"]/@href')
             for href in pages[:math.ceil(len(pages)/2)]:
-                yield scrapy.Request(href.extract())
+                url = response.urljoin(href.extract())
+                yield scrapy.Request(url)
