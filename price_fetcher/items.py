@@ -14,3 +14,4 @@ class ProductItem(scrapy.Item):
     price = scrapy.Field()
     sale_price = scrapy.Field()
     on_sale = scrapy.Field()
+    url = scrapy.Field()
