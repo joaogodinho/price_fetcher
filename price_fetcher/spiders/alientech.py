@@ -14,8 +14,9 @@ class AlienTechSpider(scrapy.Spider):
     def parse(self, response):
         for sel in response.xpath('//table[@class="productBoxContents"]/tr[position()>1]'):
             item = ProductItem()
-            item['name'] = sel.xpath('td/a/text()').extract_first()
-            item['part_number'] = sel.xpath('td/small/text()').extract_first()[1:-1]
+            item['name'] = sel.xpath('td/a/text()').extract_first().strip()
+            item['url'] = sel.xpath('td/a/@href').extract_first().split('&osCsid')[0]
+            item['part_number'] = sel.xpath('td/small/text()').extract_first()[1:-1].strip()
             temp_price = sel.xpath('td/span/s/text()').extract_first()
             sale_price = sel.xpath('td/span/text()').extract_first().strip().replace('.', '').replace(',', '.')[:-1]
             if temp_price is not None:
