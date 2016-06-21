@@ -25,6 +25,7 @@ class AlienTechSpider(scrapy.Spider):
                 item['on_sale'] = True
             else:
                 item['price'] = sale_price
+                item['sale_price'] = 0
                 item['on_sale'] = False
             yield item
 

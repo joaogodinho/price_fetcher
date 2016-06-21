@@ -35,6 +35,7 @@ class PCDigaSpider(scrapy.Spider):
                 item['on_sale'] = True
             else:
                 item['on_sale'] = False
+            item['sale_price'] = 0
 
             if continue_scraping:
                 yield item

@@ -32,6 +32,7 @@ class ChiptecSpider(scrapy.Spider):
                 item['on_sale'] = True
             else:
                 item['price'] = temp_price.replace('\xa0', '').replace('€', '').replace(',', '.')
+                item['sale_price'] = 0
                 item['on_sale'] = False
             yield item
 
