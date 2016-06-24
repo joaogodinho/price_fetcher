@@ -22,7 +22,7 @@ class PCDigaSpider(scrapy.Spider):
 
             pn_search = self.pn_regex.search(item['name'])
             if pn_search is not None:
-                item['part_number'] = pn_search.group(1)
+                item['part_number'] = next(pn for pn in pn_search.groups() if pn is not None)
             else:
                 item['part_number'] = None
 
