@@ -26,16 +26,19 @@ class PCDigaSpider(scrapy.Spider):
             else:
                 item['part_number'] = None
 
-            item['price'] = sel.xpath('.//td[@class="preco"]/text()').extract()[-1].replace('€', '').replace('.', '').replace(',', '.').strip()
-            if float(item['price']) < 20.0:
+            price = sel.xpath('.//td[@class="preco"]/text()').extract()[-1].replace('€', '').replace('.', '').replace(',', '.').strip()
+            if float(price) < 20.0:
                 continue_scraping = False
 
             on_sale = sel.xpath('.//parent::td/div/div/img/@src').extract_first()
             if on_sale is not None:
                 item['on_sale'] = True
+                item['sale_price'] = price
+                item['price'] = 0
             else:
                 item['on_sale'] = False
-            item['sale_price'] = 0
+                item['price'] = price
+                item['sale_price'] = 0
 
             if continue_scraping:
                 yield item
