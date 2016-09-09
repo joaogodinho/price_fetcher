@@ -17,7 +17,10 @@ class PCDigaSpider(scrapy.Spider):
         continue_scraping = True
         for sel in response.xpath('//table[@height="170px"]'):
             item = ProductItem()
-            item['url'] = sel.xpath('.//a/@href').extract_first().split('?')[0]
+            url = sel.xpath('.//a/@href').extract_first().split('?')[0]
+            temp = url.split('/')
+            temp[-1] = '-'
+            item['url'] = '/'.join(temp)
             item['name'] = sel.xpath('.//a[@class="prod"]/text()').extract_first().strip()
 
             pn_search = self.pn_regex.search(item['name'])
