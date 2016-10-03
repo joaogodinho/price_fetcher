@@ -9,45 +9,35 @@ class PCDigaSpider(scrapy.Spider):
     name = 'PCDiga'
     allowed_domains = ['pcdiga.com']
     start_urls = [
-        'https://www.pcdiga.com/nm_pesquisa.php?pesquisa=%&pagina=1&ordem=4&categoria=&marca=',
+        'https://www.pcdiga.com/catalogsearch/advanced/result/?dir=desc&mode=list&order=price&price%5Bfrom%5D=20&limit=25'
     ]
-    pn_regex = re.compile(r'\(([^)]+)\)$|\(([^)]+)\)\s*\+\s+oferta', re.IGNORECASE)
 
     def parse(self, response):
-        continue_scraping = True
-        for sel in response.xpath('//table[@height="170px"]'):
+        for sel in response.xpath('//ul[@id="products-list"]/li'):
             item = ProductItem()
-            url = sel.xpath('.//a/@href').extract_first().split('?')[0]
-            temp = url.split('/')
-            temp[-1] = '-'
-            item['url'] = '/'.join(temp)
-            item['name'] = sel.xpath('.//a[@class="prod"]/text()').extract_first().strip()
+            item['name'] = sel.xpath('.//h2[@class="product-name"]/a/text()').extract_first().strip()
+            item['url'] = sel.xpath('.//h2[@class="product-name"]/a/@href').extract_first()
+            item['part_number'] = sel.xpath('.//div[@class="product-sku"]/text()').extract_first().strip()
 
-            pn_search = self.pn_regex.search(item['name'])
-            if pn_search is not None:
-                item['part_number'] = next(pn for pn in pn_search.groups() if pn is not None)
-            else:
-                item['part_number'] = None
-
-            price = sel.xpath('.//td[@class="preco"]/text()').extract()[-1].replace('€', '').replace('.', '').replace(',', '.').strip()
-            if float(price) < 20.0:
-                continue_scraping = False
-
-            on_sale = sel.xpath('.//parent::td/div/div/img/@src').extract_first()
-            if on_sale is not None:
+            temp_price = sel.xpath('.//span[@class="regular-price"]/span[@class="price"]/text()').extract_first()
+            if temp_price is None:
+                temp_price = sel.xpath('.//div[@class="price-box"]/span[@class="price"]/text()').extract_first()
+            if temp_price is None:
+                temp_price = sel.xpath('.//p[@class="minimal-price"]/span[@class="price"]/text()').extract_first()
+            if temp_price is None:
+                item['price'] = sel.xpath('.//p[@class="old-price"]/span[@class="price"]/text()').extract_first().strip()\
+                    .replace('\xa0', '').replace('€', '').replace(',', '.')
+                item['sale_price'] = sel.xpath('.//p[@class="special-price"]/span[@class="price"]/text()').extract_first()\
+                    .strip().replace('\xa0', '').replace('€', '').replace(',', '.')
                 item['on_sale'] = True
-                item['sale_price'] = price
-                item['price'] = 0
             else:
-                item['on_sale'] = False
-                item['price'] = price
+                item['price'] = temp_price.replace('\xa0', '').replace('€', '').replace(',', '.')
                 item['sale_price'] = 0
+                item['on_sale'] = False
+            yield item
 
-            if continue_scraping:
-                yield item
+        pages = response.xpath('//div[contains(@class, "toolbar-bottom")]/div/div[@class="pages"]/ol/li/a/@href')
+        for href in pages:
+             url = response.urljoin(href.extract())
+             yield scrapy.Request(url)
 
-        if continue_scraping:
-            pages = response.xpath('//a[@class="cinza"]/@href')
-            for href in pages[:math.ceil(len(pages)/2)]:
-                url = response.urljoin(href.extract())
-                yield scrapy.Request(url)
