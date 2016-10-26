@@ -13,7 +13,7 @@ class PCDigaSpider(scrapy.Spider):
     ]
 
     def parse(self, response):
-        for sel in response.xpath('//ul[@id="products-list"]/li'):
+        for sel in response.xpath('//ul[contains(@class, "products-grid")]/li'):
             item = ProductItem()
             item['name'] = sel.xpath('.//h2[@class="product-name"]/a/text()').extract_first().strip()
             item['url'] = sel.xpath('.//h2[@class="product-name"]/a/@href').extract_first()
