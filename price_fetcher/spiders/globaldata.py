@@ -9,7 +9,7 @@ class ChiptecSpider(scrapy.Spider):
     name = 'Globaldata'
     allowed_domains = ['globaldata.pt']
     start_urls = [
-        'http://www.globaldata.pt/catalogsearch/advanced/result/?dir=desc&limit=100&order=price&price%5Bfrom%5D=20',
+        'http://www.globaldata.pt/catalogsearch/advanced/result/?dir=desc&limit=30&order=price&price%5Bfrom%5D=20',
     ]
 
     def parse(self, response):
