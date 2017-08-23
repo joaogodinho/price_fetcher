@@ -1,5 +1,7 @@
 import math
 import scrapy
+import json
+from lxml import etree
 
 from price_fetcher.items import ProductItem
 
@@ -7,29 +9,41 @@ from price_fetcher.items import ProductItem
 class AlienTechSpider(scrapy.Spider):
     name = 'AlienTech'
     allowed_domains = ['alientech.pt']
+    url_format = 'https://www.alientech.pt/toogas/product/ajax/action/index/uniqueSearchId/{}/page/{}?q=%25&price=20%2C999999999&order=price-high-to-low'
+    added_urls = set()
     start_urls = [
-        'http://www.alientech.pt/advanced_search_result.php?keywords=%25&pfrom=20&sort=3d&&page=1',
+        'https://www.alientech.pt/toogas/product/ajax/action/index/uniqueSearchId/1/page/1?q=%25&price=20%2C999999999&order=price-high-to-low',
     ]
 
     def parse(self, response):
-        for sel in response.xpath('//table[@class="productBoxContents"]/tr[position()>1]'):
+        response = json.loads(response.body_as_unicode())
+        products = etree.HTML(response['products'])
+        for sel in products.xpath('//div[contains(@class, "item")]/form/div[@class="box-product"]'):
             item = ProductItem()
-            item['name'] = sel.xpath('td/a/text()').extract_first().strip()
-            item['url'] = sel.xpath('td/a/@href').extract_first().split('&osCsid')[0]
-            item['part_number'] = sel.xpath('td/small/text()').extract_first()[1:-1].strip()
-            temp_price = sel.xpath('td/span/s/text()').extract_first()
-            sale_price = sel.xpath('td/span/text()').extract_first().strip().replace('.', '').replace(',', '.')[:-1]
-            if temp_price is not None:
-                item['price'] = temp_price.replace('.', '').replace(',', '.')[:-1]
+            temp = sel.xpath('div/div[@class="prod-name"]')[0]
+            item['name'] = temp.xpath('a/text()')[0].strip()
+            item['url'] = temp.xpath('a/@href')[0]
+            item['part_number'] = temp.xpath('small/text()')[0].strip()
+
+            prices = sel.xpath('div/div/div[@class="block-price"]')[0]
+            sale_price = prices.xpath('span[contains(@class, "prod-old-price")]/text()')[0].strip().split(' ')[0]
+            sale_price = sale_price.replace(',', '')
+            norm_price = prices.xpath('span[contains(@class, "prod-price")]/text()')[0].strip().split(' ')[0]
+            norm_price = norm_price.replace(',', '')
+            if float(sale_price) != float(norm_price):
                 item['sale_price'] = sale_price
                 item['on_sale'] = True
+                item['price'] = norm_price
             else:
-                item['price'] = sale_price
                 item['sale_price'] = 0
                 item['on_sale'] = False
+                item['price'] = norm_price
             yield item
 
-        pages = response.xpath('//a[@class="pageResults"]/@href')
-        for href in pages[:math.ceil(len(pages)/2)]:
-            url = response.urljoin(href.extract()).split('&osCsid')[0]
-            yield scrapy.Request(url)
+        
+        for numb in range(1, int(response['max_pages']) + 1):
+            url = self.url_format.format(response['uniqueSearchId'], numb)
+            if numb not in self.added_urls:
+                self.added_urls.add(numb)
+                print(url)
+                yield scrapy.Request(url)
