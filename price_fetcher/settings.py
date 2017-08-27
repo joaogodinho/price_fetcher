@@ -88,3 +88,7 @@ AUTOTHROTTLE_DEBUG = True
 #HTTPCACHE_DIR = 'httpcache'
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+
+
+FEED_FORMAT = 'csv'
+LOG_LEVEL = 'INFO'

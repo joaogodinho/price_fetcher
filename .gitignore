@@ -1,2 +1,6 @@
 *.pyc
 .idea
+.vscode
+build/
+project.egg-info/
+setup.py
